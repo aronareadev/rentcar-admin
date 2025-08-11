@@ -211,14 +211,14 @@ export default function VehicleModelDetailPage() {
         </div>
       }
     >
-      <div style={{ display: 'grid', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gap: '1rem' }}>
         {/* 이미지 및 기본 정보 */}
         <Card className="border border-gray-200 shadow-lg">
           <div style={{ padding: '0' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '0' }}>
               {/* 이미지 영역 */}
               <div style={{ 
-                height: '400px', 
+                height: '280px', 
                 backgroundColor: '#f3f4f6',
                 position: 'relative',
                 borderRadius: '0.5rem 0 0 0.5rem',
@@ -244,126 +244,106 @@ export default function VehicleModelDetailPage() {
                     justifyContent: 'center',
                     color: '#9ca3af'
                   }}>
-                    <ImageIcon style={{ width: '4rem', height: '4rem', marginBottom: '1rem' }} />
-                    <p style={{ fontSize: '1rem', fontWeight: '600' }}>이미지 없음</p>
+                    <ImageIcon style={{ width: '3rem', height: '3rem', marginBottom: '0.5rem' }} />
+                    <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>이미지 없음</p>
                   </div>
                 )}
               </div>
 
               {/* 기본 정보 영역 */}
-              <div style={{ padding: '2rem' }}>
-                <div style={{ marginBottom: '2rem' }}>
+              <div style={{ padding: '1.25rem' }}>
+                <div style={{ marginBottom: '1.25rem' }}>
                   <h1 style={{ 
-                    fontSize: '2rem', 
+                    fontSize: '1.5rem', 
                     fontWeight: '700', 
-                    marginBottom: '0.5rem',
+                    marginBottom: '0.25rem',
                     color: '#111827'
                   }}>
                     {model.brand} {model.model}
                   </h1>
-                  <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
-                    {model.year}년형
+                  <p style={{ fontSize: '1rem', color: '#6b7280' }}>
+                    {model.year}년형 • {model.category || '미분류'}
                   </p>
                 </div>
 
                 {/* 상세 사양 */}
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      backgroundColor: '#e0f2fe',
+                      width: '2rem',
+                      height: '2rem',
+                      backgroundColor: '#f1f5f9',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Package style={{ width: '1.25rem', height: '1.25rem', color: '#0369a1' }} />
+                      <Fuel style={{ width: '1rem', height: '1rem', color: '#64748b' }} />
                     </div>
                     <div>
-                      <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>카테고리</p>
-                      <p style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>
-                        {model.category || '미분류'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      backgroundColor: '#ecfdf5',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Fuel style={{ width: '1.25rem', height: '1.25rem', color: '#16a34a' }} />
-                    </div>
-                    <div>
-                      <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>연료</p>
-                      <p style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>연료</p>
+                      <p style={{ fontSize: '0.875rem', fontWeight: '600', margin: 0 }}>
                         {getFuelTypeLabel(model.fuel_type)}
                       </p>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      backgroundColor: '#fef3c7',
+                      width: '2rem',
+                      height: '2rem',
+                      backgroundColor: '#f1f5f9',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Settings style={{ width: '1.25rem', height: '1.25rem', color: '#d97706' }} />
+                      <Settings style={{ width: '1rem', height: '1rem', color: '#64748b' }} />
                     </div>
                     <div>
-                      <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>변속기</p>
-                      <p style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>변속기</p>
+                      <p style={{ fontSize: '0.875rem', fontWeight: '600', margin: 0 }}>
                         {getTransmissionLabel(model.transmission)}
                       </p>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{
-                      width: '2.5rem',
-                      height: '2.5rem',
-                      backgroundColor: '#ede9fe',
+                      width: '2rem',
+                      height: '2rem',
+                      backgroundColor: '#f1f5f9',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Users style={{ width: '1.25rem', height: '1.25rem', color: '#7c3aed' }} />
+                      <Users style={{ width: '1rem', height: '1rem', color: '#64748b' }} />
                     </div>
                     <div>
-                      <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>승차인원</p>
-                      <p style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>승차인원</p>
+                      <p style={{ fontSize: '0.875rem', fontWeight: '600', margin: 0 }}>
                         {model.passengers}명
                       </p>
                     </div>
                   </div>
 
                   {model.displacement && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <div style={{
-                        width: '2.5rem',
-                        height: '2.5rem',
-                        backgroundColor: '#fee2e2',
+                        width: '2rem',
+                        height: '2rem',
+                        backgroundColor: '#f1f5f9',
                         borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
                       }}>
-                        <Car style={{ width: '1.25rem', height: '1.25rem', color: '#dc2626' }} />
+                        <Car style={{ width: '1rem', height: '1rem', color: '#64748b' }} />
                       </div>
                       <div>
-                        <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>배기량</p>
-                        <p style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+                        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>배기량</p>
+                        <p style={{ fontSize: '0.875rem', fontWeight: '600', margin: 0 }}>
                           {model.displacement.toLocaleString()}cc
                         </p>
                       </div>
@@ -375,138 +355,137 @@ export default function VehicleModelDetailPage() {
           </div>
         </Card>
 
-        {/* 요금 정보 */}
-        <Card className="border border-gray-200 shadow-lg">
-          <div style={{ padding: '1.5rem' }}>
-            <h2 style={{ 
-              fontSize: '1.25rem', 
-              fontWeight: '600', 
-              marginBottom: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}>
-              <DollarSign style={{ width: '1.25rem', height: '1.25rem', color: '#16a34a' }} />
-              요금 정보
-            </h2>
-            
-            <div style={{
-              padding: '1.5rem',
-              backgroundColor: '#f0fdf4',
-              borderRadius: '0.75rem',
-              border: '1px solid #bbf7d0',
-              textAlign: 'center'
-            }}>
-              <p style={{ fontSize: '0.875rem', color: '#16a34a', marginBottom: '0.5rem' }}>
-                예상 일일 대여료
-              </p>
-              <p style={{ fontSize: '2rem', fontWeight: '700', color: '#15803d', margin: 0 }}>
-                {model.estimated_daily_rate.toLocaleString()}원
-              </p>
-              <p style={{ fontSize: '0.75rem', color: '#16a34a', marginTop: '0.5rem' }}>
-                * 실제 요금은 차량 등록 시 조정될 수 있습니다
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        {/* 옵션 정보 */}
-        {model.features && model.features.length > 0 && (
+        {/* 요금 정보와 옵션 정보 */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+          {/* 요금 정보 */}
           <Card className="border border-gray-200 shadow-lg">
-            <div style={{ padding: '1.5rem' }}>
+            <div style={{ padding: '1rem' }}>
               <h2 style={{ 
-                fontSize: '1.25rem', 
+                fontSize: '1rem', 
                 fontWeight: '600', 
-                marginBottom: '1rem',
+                marginBottom: '0.75rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
-                <Package style={{ width: '1.25rem', height: '1.25rem', color: '#3b82f6' }} />
-                기본 옵션
+                <DollarSign style={{ width: '1rem', height: '1rem', color: 'rgb(30, 64, 175)' }} />
+                요금 정보
               </h2>
               
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '0.75rem'
+                padding: '1rem',
+                background: 'linear-gradient(135deg, rgb(30, 64, 175) 0%, rgb(59, 130, 246) 100%)',
+                borderRadius: '0.5rem',
+                textAlign: 'center'
               }}>
-                {model.features.map((feature, index) => (
-                  <div key={index} style={{
-                    padding: '0.75rem',
-                    backgroundColor: '#f8fafc',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e2e8f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}>
-                    <div style={{
-                      width: '0.5rem',
-                      height: '0.5rem',
-                      backgroundColor: '#10b981',
-                      borderRadius: '50%'
-                    }} />
-                    <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
-                      {getFeatureLabel(feature)}
-                    </span>
-                  </div>
-                ))}
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.9)', marginBottom: '0.25rem' }}>
+                  예상 일일 대여료
+                </p>
+                <p style={{ fontSize: '1.5rem', fontWeight: '700', color: 'white', margin: 0 }}>
+                  {model.estimated_daily_rate.toLocaleString()}원
+                </p>
               </div>
             </div>
           </Card>
-        )}
+
+          {/* 옵션 정보 */}
+          {model.features && model.features.length > 0 && (
+            <Card className="border border-gray-200 shadow-lg">
+              <div style={{ padding: '1rem' }}>
+                <h2 style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: '600', 
+                  marginBottom: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <Package style={{ width: '1rem', height: '1rem', color: 'rgb(30, 64, 175)' }} />
+                  기본 옵션
+                </h2>
+                
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                  gap: '0.5rem'
+                }}>
+                  {model.features.map((feature, index) => (
+                    <div key={index} style={{
+                      padding: '0.5rem',
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '0.375rem',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.375rem'
+                    }}>
+                      <div style={{
+                        width: '0.375rem',
+                        height: '0.375rem',
+                        backgroundColor: 'rgb(30, 64, 175)',
+                        borderRadius: '50%'
+                      }} />
+                      <span style={{ fontSize: '0.75rem', fontWeight: '500' }}>
+                        {getFeatureLabel(feature)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
 
         {/* 등록 정보 */}
         <Card className="border border-gray-200 shadow-lg">
-          <div style={{ padding: '1.5rem' }}>
+          <div style={{ padding: '1rem' }}>
             <h2 style={{ 
-              fontSize: '1.25rem', 
+              fontSize: '1rem', 
               fontWeight: '600', 
-              marginBottom: '1rem',
+              marginBottom: '0.75rem',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              <Calendar style={{ width: '1.25rem', height: '1.25rem', color: '#6b7280' }} />
+              <Calendar style={{ width: '1rem', height: '1rem', color: 'rgb(30, 64, 175)' }} />
               등록 정보
             </h2>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
               <div>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
                   등록일시
                 </p>
-                <p style={{ fontSize: '1rem', fontWeight: '600' }}>
-                  {new Date(model.created_at).toLocaleString('ko-KR')}
+                <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>
+                  {new Date(model.created_at).toLocaleDateString('ko-KR')}
                 </p>
               </div>
               
               <div>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
                   최종 수정
                 </p>
-                <p style={{ fontSize: '1rem', fontWeight: '600' }}>
-                  {new Date(model.updated_at).toLocaleString('ko-KR')}
+                <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>
+                  {new Date(model.updated_at).toLocaleDateString('ko-KR')}
                 </p>
               </div>
-            </div>
-            
-            <div style={{ marginTop: '1rem' }}>
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem' }}>
-                상태
-              </p>
-              <span style={{
-                display: 'inline-block',
-                padding: '0.25rem 0.75rem',
-                backgroundColor: model.is_active ? '#dcfce7' : '#fee2e2',
-                color: model.is_active ? '#16a34a' : '#dc2626',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                fontWeight: '600'
-              }}>
-                {model.is_active ? '활성' : '비활성'}
-              </span>
+
+              <div>
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                  상태
+                </p>
+                <span style={{
+                  display: 'inline-block',
+                  padding: '0.25rem 0.5rem',
+                  backgroundColor: model.is_active ? '#dcfce7' : '#fee2e2',
+                  color: model.is_active ? '#16a34a' : '#dc2626',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '600'
+                }}>
+                  {model.is_active ? '활성' : '비활성'}
+                </span>
+              </div>
             </div>
           </div>
         </Card>

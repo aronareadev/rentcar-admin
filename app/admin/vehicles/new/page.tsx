@@ -465,39 +465,42 @@ export default function NewVehiclePage() {
                     <label style={labelStyle}>
                       모델 <span style={{ color: 'rgb(30, 64, 175)' }}>*</span>
                     </label>
-                    {availableModels.length > 0 && formData.brand ? (
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <Select
-                          value={availableModels.find(m => m.model === formData.model)?.model || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
-                          style={{ flex: 1 }}
-                        >
-                          <option value="">등록된 모델 선택</option>
-                          {availableModels.map((model) => (
-                            <option key={model.id} value={model.model}>
-                              {model.model} ({model.year}년)
-                            </option>
-                          ))}
-                        </Select>
-                        <Input
-                          type="text"
-                          name="model"
-                          value={formData.model}
-                          onChange={handleInputChange}
-                          placeholder="직접 입력"
-                          required
-                          style={{ flex: 1 }}
-                        />
-                      </div>
-                    ) : (
-                      <Input
-                        type="text"
-                        name="model"
-                        value={formData.model}
-                        onChange={handleInputChange}
-                        placeholder="그랜저"
-                        required
-                      />
+                    <Input
+                      type="text"
+                      name="model"
+                      value={formData.model}
+                      onChange={handleInputChange}
+                      placeholder={formData.brand ? `${formData.brand} 모델명 입력` : "모델명 입력"}
+                      list={`model-suggestions-${formData.brand}`}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '2px solid #e5e7eb',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.875rem',
+                        backgroundColor: 'white',
+                        color: '#374151',
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = 'rgb(30, 64, 175)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(30, 64, 175, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#e5e7eb';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                    {formData.brand && availableModels.length > 0 && (
+                      <datalist id={`model-suggestions-${formData.brand}`}>
+                        {availableModels.map((model) => (
+                          <option key={model.id} value={model.model}>
+                            {model.model} ({model.year}년)
+                          </option>
+                        ))}
+                      </datalist>
                     )}
                   </div>
 

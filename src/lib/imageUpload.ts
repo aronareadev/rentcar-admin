@@ -26,16 +26,42 @@ export const uploadVehicleImage = async (
       return null;
     }
 
-    // 파일명 정리 (특수문자 제거, 더 엄격하게)
+    // 파일명 정리 (한글을 영문으로 변환하여 더 안전하게)
+    const koreanToEnglish: {[key: string]: string} = {
+      '현대': 'hyundai',
+      '기아': 'kia',
+      '삼성': 'samsung',
+      '대우': 'daewoo',
+      '쌍용': 'ssangyong',
+      '르노': 'renault',
+      '더뉴': 'thenew',
+      '뉴': 'new',
+      '그랜저': 'grandeur',
+      '쏘나타': 'sonata',
+      '아반떼': 'avante',
+      '투싼': 'tucson',
+      '싼타페': 'santafe',
+      '코나': 'kona',
+      '벨로스터': 'veloster',
+      '넥쏘': 'nexo',
+      '아이오닉': 'ioniq',
+      '캐스퍼': 'casper',
+      '스포티지': 'sportage',
+      '쏘렌토': 'sorento',
+      '모하비': 'mohave',
+      '카니발': 'carnival',
+      '스타리아': 'staria'
+    };
+    
     const cleanBrand = brand
-      .replace(/[^\w가-힣]/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_|_$/g, '');
+      .replace(/[가-힣]+/g, (match) => koreanToEnglish[match] || 'kr')
+      .replace(/[^\w]/g, '')
+      .toLowerCase();
     
     const cleanModel = model
-      .replace(/[^\w가-힣]/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_|_$/g, '');
+      .replace(/[가-힣]+/g, (match) => koreanToEnglish[match] || 'kr')
+      .replace(/[^\w]/g, '')
+      .toLowerCase();
     
     const fileExt = file.name.split('.').pop()?.toLowerCase();
     
@@ -58,10 +84,16 @@ export const uploadVehicleImage = async (
       });
 
     if (error) {
-      console.error('Storage upload error:', error);
+      console.error('Storage upload error:', {
+        message: error.message,
+        details: error,
+        filePath,
+        fileSize: file.size,
+        fileType: file.type
+      });
       
       // 특정 에러 타입별 처리
-      if (error.message?.includes('Duplicate')) {
+      if (error.message?.includes('Duplicate') || error.message?.includes('already exists')) {
         console.log('File already exists, trying with unique suffix...');
         const uniqueFileName = `${cleanBrand}_${cleanModel}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
         const uniquePath = `${cleanBrand}/${uniqueFileName}`;
@@ -75,6 +107,34 @@ export const uploadVehicleImage = async (
           
         if (retryError) {
           console.error('Retry upload failed:', retryError);
+          return null;
+        }
+        
+        const { data: urlData } = supabase.storage
+          .from('vehicle-images')
+          .getPublicUrl(retryData.path);
+
+        return {
+          url: urlData.publicUrl,
+          path: retryData.path
+        };
+      }
+      
+      // 파일명이 너무 길거나 특수문자 문제인 경우 단순화
+      if (error.message?.includes('Invalid') || error.message?.includes('path')) {
+        console.log('Path issue, trying with simplified name...');
+        const simplifiedFileName = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        const simplifiedPath = `vehicles/${simplifiedFileName}`;
+        
+        const { data: retryData, error: retryError } = await supabase.storage
+          .from('vehicle-images')
+          .upload(simplifiedPath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+          
+        if (retryError) {
+          console.error('Simplified path upload failed:', retryError);
           return null;
         }
         
@@ -192,21 +252,24 @@ export const uploadBrandLogo = async (
       return null;
     }
 
-    // 파일명 정리 (영문/숫자만 사용하여 안전하게)
+    // 파일명 정리 (한글을 영문으로 변환하여 안전하게)
+    const koreanToEnglish: {[key: string]: string} = {
+      '현대': 'hyundai',
+      '기아': 'kia',
+      '삼성': 'samsung',
+      '대우': 'daewoo',
+      '쌍용': 'ssangyong',
+      '르노': 'renault',
+      'BMW': 'bmw',
+      '벤츠': 'benz',
+      '아우디': 'audi',
+      '테슬라': 'tesla',
+      '폭스바겐': 'volkswagen'
+    };
+    
     const cleanBrandName = brandName
-      .replace(/[가-힣]/g, (match) => {
-        // 한글을 영문으로 변환하는 간단한 매핑
-        const koreanToEnglish: {[key: string]: string} = {
-          '현대': 'hyundai',
-          '기아': 'kia', 
-          '삼성': 'samsung',
-          '대우': 'daewoo',
-          '쌍용': 'ssangyong',
-          '르노': 'renault'
-        };
-        return koreanToEnglish[match] || 'kr';
-      })
-      .replace(/[^\w]/g, '')  // 영문/숫자만 남기기
+      .replace(/[가-힣]+/g, (match) => koreanToEnglish[match] || 'kr')
+      .replace(/[^\w]/g, '')
       .toLowerCase();
     
     const fileExt = file.name.split('.').pop()?.toLowerCase();

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/src/components/admin/PageLayout';
 import { Button } from '@/src/components/ui/Button';
 import { Card } from '@/src/components/ui/Card';
 import { Input, Select, Loading } from '@/src/components/ui';
-import { vehicleModelService } from '@/src/lib/database';
+import { vehicleModelService, brandService } from '@/src/lib/database';
 import { uploadVehicleImage, isBase64Url } from '@/src/lib/imageUpload';
 import { ArrowLeft, Save, Plus, Trash2, Upload, Image as ImageIcon, Car } from 'lucide-react';
 import Link from 'next/link';
@@ -67,6 +67,60 @@ export default function BulkVehicleModelsPage() {
   const [suggestedModels, setSuggestedModels] = useState<any[]>([])
   const [allFiles, setAllFiles] = useState<File[]>([])
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
+  
+  // 브랜드 관련 상태
+  const [availableBrands, setAvailableBrands] = useState<any[]>([])
+  const [selectedBulkBrand, setSelectedBulkBrand] = useState<string>('')
+  const [loadingBrands, setLoadingBrands] = useState(false)
+  
+  // 기존 모델 관련 상태
+  const [existingModels, setExistingModels] = useState<any[]>([])
+  const [loadingModels, setLoadingModels] = useState(false)
+  const [modelsByBrand, setModelsByBrand] = useState<{[key: string]: string[]}>({})
+  
+  // 브랜드 목록 로드
+  const loadBrands = async () => {
+    try {
+      setLoadingBrands(true);
+      const brands = await brandService.getAll();
+      setAvailableBrands(brands);
+    } catch (error) {
+      console.error('브랜드 목록 로드 실패:', error);
+    } finally {
+      setLoadingBrands(false);
+    }
+  };
+
+  // 기존 모델 목록 로드
+  const loadExistingModels = async () => {
+    try {
+      setLoadingModels(true);
+      const models = await vehicleModelService.getAll();
+      setExistingModels(models);
+      
+      // 브랜드별로 모델 그룹핑
+      const groupedModels: {[key: string]: string[]} = {};
+      models.forEach(model => {
+        if (!groupedModels[model.brand]) {
+          groupedModels[model.brand] = [];
+        }
+        if (!groupedModels[model.brand].includes(model.model)) {
+          groupedModels[model.brand].push(model.model);
+        }
+      });
+      setModelsByBrand(groupedModels);
+    } catch (error) {
+      console.error('기존 모델 목록 로드 실패:', error);
+    } finally {
+      setLoadingModels(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 데이터 로드
+  React.useEffect(() => {
+    loadBrands();
+    loadExistingModels();
+  }, []);
   
   // 한번에 15개 모델까지 등록 가능
   const [models, setModels] = useState<VehicleModel[]>(
@@ -186,6 +240,12 @@ export default function BulkVehicleModelsPage() {
     const suggestions = selectedFilesList.map(file => {
       const fileName = file.name.toLowerCase().replace(/\.(jpg|jpeg|png|webp)$/i, '');
       const suggestion = suggestModelFromFileName(fileName);
+      
+      // 브랜드 일괄 지정이 선택된 경우 해당 브랜드로 덮어쓰기
+      if (selectedBulkBrand) {
+        suggestion.brand = selectedBulkBrand;
+      }
+      
       return {
         fileName,
         file: file,
@@ -194,6 +254,27 @@ export default function BulkVehicleModelsPage() {
     });
     
     return suggestions;
+  };
+
+  // 브랜드 일괄 적용 기능
+  const applyBulkBrand = () => {
+    if (!selectedBulkBrand) {
+      alert('브랜드를 선택해주세요.');
+      return;
+    }
+    
+    const newModels = [...models];
+    const selectedFilesList = allFiles.filter(file => selectedFiles.has(file.name));
+    
+    // 선택된 파일 수만큼의 모델에 브랜드 적용
+    for (let i = 0; i < Math.min(selectedFilesList.length, 15); i++) {
+      if (newModels[i]) {
+        newModels[i] = { ...newModels[i], brand: selectedBulkBrand };
+      }
+    }
+    
+    setModels(newModels);
+    alert(`${selectedFilesList.length}개 모델에 "${selectedBulkBrand}" 브랜드가 적용되었습니다.`);
   };
 
   // 파일 선택/해제 핸들러
@@ -370,15 +451,23 @@ export default function BulkVehicleModelsPage() {
       for (let i = 0; i < Math.min(suggestions.length, 15); i++) {
         const suggestion = suggestions[i];
         
+        // 업로드 간격 추가 (서버 부하 방지)
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
+        }
+        
         try {
           console.log(`Uploading ${i + 1}/${suggestions.length}: ${suggestion.brand} ${suggestion.model}`);
           
-          // 모델명에서 특수문자 제거 (업로드 안전성 향상)
-          const cleanModel = suggestion.model.replace(/[^\w\sㄱ-ㅎ가-힣]/g, '').trim();
-          const cleanBrand = suggestion.brand.replace(/[^\w\sㄱ-ㅎ가-힣]/g, '').trim();
+          // 브랜드 일괄 지정이 있으면 해당 브랜드 사용, 없으면 추천 브랜드 사용
+          const finalBrand = selectedBulkBrand || suggestion.brand;
+          
+          // 모델명과 브랜드명 정리 (기본적인 정리만, 세부사항은 imageUpload에서 처리)
+          const cleanModel = suggestion.model.trim();
+          const cleanBrand = finalBrand.trim();
           
           if (!cleanModel || !cleanBrand) {
-            console.error(`Invalid model/brand name: ${suggestion.brand} ${suggestion.model}`);
+            console.error(`Empty model/brand name: "${finalBrand}" "${suggestion.model}"`);
             failCount++;
             continue;
           }
@@ -407,8 +496,14 @@ export default function BulkVehicleModelsPage() {
               }
             };
             successCount++;
+            console.log(`✅ Successfully uploaded: ${cleanBrand} ${cleanModel}`);
           } else {
-            console.error(`Failed to upload image for ${cleanBrand} ${cleanModel}`);
+            console.error(`❌ Failed to upload image for: ${cleanBrand} ${cleanModel}`);
+            console.error('File details:', {
+              fileName: suggestion.file.name,
+              fileSize: suggestion.file.size,
+              fileType: suggestion.file.type
+            });
             failCount++;
           }
         } catch (fileError) {
@@ -499,15 +594,13 @@ export default function BulkVehicleModelsPage() {
     }
   };
 
-  // 인기 차량 모델 목록 (미리 정의된 옵션들)
-  const popularModels = [
-    { brand: '현대', models: ['그랜저', '쏘나타', '아반떼', '투싼', '싼타페', '코나'] },
-    { brand: '기아', models: ['K9', 'K7', 'K5', 'K3', '스포티지', '쏘렌토', '니로'] },
-    { brand: 'BMW', models: ['3시리즈', '5시리즈', '7시리즈', 'X3', 'X5', 'X7'] },
-    { brand: '벤츠', models: ['C클래스', 'E클래스', 'S클래스', 'GLC', 'GLE', 'GLS'] },
-    { brand: '아우디', models: ['A4', 'A6', 'A8', 'Q5', 'Q7', 'Q8'] },
-    { brand: '테슬라', models: ['모델 3', '모델 S', '모델 X', '모델 Y'] }
-  ];
+  // 브랜드 목록 생성 (DB 브랜드 + 기존 모델의 브랜드)
+  const getAllBrands = () => {
+    const dbBrands = availableBrands.map(brand => brand.name);
+    const modelBrands = Object.keys(modelsByBrand);
+    const allBrands = [...new Set([...dbBrands, ...modelBrands])];
+    return allBrands.sort();
+  };
 
   const categories = ['경차', '소형', '중형', '대형', 'SUV', '승합', '화물', '전기차', '하이브리드'];
 
@@ -527,7 +620,7 @@ export default function BulkVehicleModelsPage() {
   return (
     <PageLayout
       title="차량 모델 일괄 등록"
-      description="인기 차량 모델을 미리 등록하여 차량 등록을 간편하게 하세요 (최대 10개)"
+      description="인기 차량 모델을 미리 등록하여 차량 등록을 간편하게 하세요 (최대 15개)"
       actions={
         <Link href="/admin/vehicles">
           <Button variant="outline" size="sm">
@@ -553,9 +646,10 @@ export default function BulkVehicleModelsPage() {
             </div>
             <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0, lineHeight: '1.5' }}>
               • 한번에 최대 15개의 차량 모델을 등록할 수 있습니다<br/>
-              • 브랜드와 모델명은 필수 입력 항목입니다<br/>
-              • 등록된 모델은 차량 등록 시 빠른 선택이 가능합니다<br/>
-              • 이미지와 기본 옵션을 미리 설정하여 등록 시간을 단축할 수 있습니다
+              • 브랜드와 모델명은 필수 입력 항목입니다 (자유 입력 + 기존 모델 자동완성)<br/>
+              • 기존 등록된 모델 목록에서 자동완성 제안을 받을 수 있습니다<br/>
+              • 이미지 폴더 업로드 시 파일명 기반 자동 모델 생성이 가능합니다<br/>
+              • 등록된 모델은 차량 등록 시 빠른 선택이 가능합니다
             </p>
           </div>
 
@@ -685,6 +779,178 @@ export default function BulkVehicleModelsPage() {
                   </div>
                 </div>
 
+                {/* 브랜드 일괄 지정 섹션 */}
+                <div style={{
+                  backgroundColor: 'rgba(30, 64, 175, 0.05)',
+                  border: '1px solid rgba(30, 64, 175, 0.2)',
+                  borderRadius: '0.5rem',
+                  padding: '1rem',
+                  marginBottom: '1.5rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <div style={{
+                      width: '1.25rem',
+                      height: '1.25rem',
+                      backgroundColor: 'rgb(30, 64, 175)',
+                      borderRadius: '0.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <span style={{ color: 'white', fontSize: '0.75rem', fontWeight: 'bold' }}>B</span>
+                    </div>
+                    <h4 style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: 'rgb(30, 64, 175)', 
+                      margin: 0 
+                    }}>
+                      브랜드 일괄 지정
+                    </h4>
+                  </div>
+                  
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem', lineHeight: '1.4' }}>
+                    선택된 모든 파일에 동일한 브랜드를 적용합니다. 개별 설정보다 우선 적용됩니다.
+                  </p>
+                  
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ 
+                        display: 'block', 
+                        fontSize: '0.875rem', 
+                        fontWeight: '600', 
+                        color: '#374151', 
+                        marginBottom: '0.25rem' 
+                      }}>
+                        브랜드 선택
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <select
+                          value={selectedBulkBrand}
+                          onChange={(e) => setSelectedBulkBrand(e.target.value)}
+                          disabled={loadingBrands}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem 2.5rem 0.75rem 1rem',
+                            border: `2px solid ${selectedBulkBrand ? 'rgba(30, 64, 175, 0.5)' : '#e5e7eb'}`,
+                            borderRadius: '0.5rem',
+                            fontSize: '0.875rem',
+                            backgroundColor: 'white',
+                            color: '#374151',
+                            appearance: 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            outline: 'none'
+                          }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = 'rgb(30, 64, 175)';
+                            e.target.style.boxShadow = '0 0 0 3px rgba(30, 64, 175, 0.1)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = selectedBulkBrand ? 'rgba(30, 64, 175, 0.5)' : '#e5e7eb';
+                            e.target.style.boxShadow = 'none';
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!loadingBrands) {
+                              (e.target as HTMLSelectElement).style.borderColor = 'rgba(30, 64, 175, 0.3)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!document.activeElement || document.activeElement !== e.target) {
+                              (e.target as HTMLSelectElement).style.borderColor = selectedBulkBrand ? 'rgba(30, 64, 175, 0.5)' : '#e5e7eb';
+                            }
+                          }}
+                        >
+                          <option value="" style={{ color: '#9ca3af' }}>
+                            {loadingBrands ? '브랜드 로딩 중...' : ' 브랜드를 선택하세요 (선택사항)'}
+                          </option>
+                          {availableBrands.map(brand => (
+                            <option 
+                              key={brand.id} 
+                              value={brand.name}
+                              style={{ 
+                                color: '#374151',
+                                padding: '0.5rem',
+                                backgroundColor: 'white'
+                              }}
+                            >
+                               {brand.name} {brand.name_en && `(${brand.name_en})`}
+                            </option>
+                          ))}
+                        </select>
+                        
+                        {/* 커스텀 드롭다운 화살표 */}
+                        <div style={{
+                          position: 'absolute',
+                          right: '0.75rem',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          pointerEvents: 'none',
+                          color: selectedBulkBrand ? 'rgb(30, 64, 175)' : '#9ca3af',
+                          transition: 'color 0.2s ease'
+                        }}>
+                          <svg 
+                            width="16" 
+                            height="16" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth={2} 
+                              d="M19 9l-7 7-7-7" 
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={applyBulkBrand}
+                      disabled={!selectedBulkBrand || selectedFiles.size === 0}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        backgroundColor: (!selectedBulkBrand || selectedFiles.size === 0) 
+                          ? '#e5e7eb' 
+                          : 'rgb(30, 64, 175)',
+                        color: (!selectedBulkBrand || selectedFiles.size === 0) 
+                          ? '#9ca3af' 
+                          : 'white',
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        cursor: (!selectedBulkBrand || selectedFiles.size === 0) 
+                          ? 'not-allowed' 
+                          : 'pointer',
+                        transition: 'all 0.2s ease',
+                        whiteSpace: 'nowrap',
+                        minWidth: '120px',
+                        outline: 'none'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedBulkBrand && selectedFiles.size > 0) {
+                          (e.target as HTMLButtonElement).style.backgroundColor = 'rgb(29, 78, 216)';
+                          (e.target as HTMLButtonElement).style.transform = 'translateY(-1px)';
+                          (e.target as HTMLButtonElement).style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedBulkBrand && selectedFiles.size > 0) {
+                          (e.target as HTMLButtonElement).style.backgroundColor = 'rgb(30, 64, 175)';
+                          (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
+                          (e.target as HTMLButtonElement).style.boxShadow = 'none';
+                        }
+                      }}
+                    >
+                      ⚡ 일괄 적용
+                    </button>
+                  </div>
+                </div>
+
                 <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1.5rem' }}>
                   최대 15개까지 선택할 수 있습니다. 선택된 파일들이 차량 모델로 등록됩니다.
                 </p>
@@ -702,6 +968,9 @@ export default function BulkVehicleModelsPage() {
                     const isSelected = selectedFiles.has(file.name);
                     const fileName = file.name.toLowerCase().replace(/\.(jpg|jpeg|png|webp)$/i, '');
                     const suggestion = suggestModelFromFileName(fileName);
+                    
+                    // 브랜드 일괄 지정이 선택된 경우 해당 브랜드로 덮어쓰기
+                    const finalBrand = selectedBulkBrand || suggestion.brand;
                     
                     return (
                       <div 
@@ -771,7 +1040,12 @@ export default function BulkVehicleModelsPage() {
                             {file.name}
                           </p>
                           <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: '0.25rem 0 0 0' }}>
-                            {suggestion.category} • {suggestion.estimated_daily_rate.toLocaleString()}원
+                            <span style={{ 
+                              color: selectedBulkBrand ? 'rgb(30, 64, 175)' : '#9ca3af',
+                              fontWeight: selectedBulkBrand ? '600' : 'normal'
+                            }}>
+                              {finalBrand}
+                            </span> • {suggestion.category} • {suggestion.estimated_daily_rate.toLocaleString()}원
                           </p>
                         </div>
                       </div>
@@ -827,17 +1101,37 @@ export default function BulkVehicleModelsPage() {
                     <label style={labelStyle}>
                       브랜드 <span style={{ color: 'rgb(30, 64, 175)' }}>*</span>
                     </label>
-                    <Select
-                      value={model.brand}
-                      onChange={(e) => handleModelChange(index, 'brand', e.target.value)}
-                    >
-                      <option value="">브랜드 선택</option>
-                      {popularModels.map(brand => (
-                        <option key={brand.brand} value={brand.brand}>
-                          {brand.brand}
-                        </option>
-                      ))}
-                    </Select>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        value={model.brand}
+                        onChange={(e) => handleModelChange(index, 'brand', e.target.value)}
+                        placeholder="브랜드 입력 또는 선택"
+                        list={`brand-list-${index}`}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          border: '2px solid #e5e7eb',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.875rem',
+                          backgroundColor: 'white',
+                          color: '#374151',
+                          outline: 'none',
+                          transition: 'border-color 0.2s ease'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = 'rgb(30, 64, 175)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#e5e7eb';
+                        }}
+                      />
+                      <datalist id={`brand-list-${index}`}>
+                        {getAllBrands().map(brand => (
+                          <option key={brand} value={brand} />
+                        ))}
+                      </datalist>
+                    </div>
                   </div>
 
                   {/* 모델 */}
@@ -845,20 +1139,60 @@ export default function BulkVehicleModelsPage() {
                     <label style={labelStyle}>
                       모델 <span style={{ color: 'rgb(30, 64, 175)' }}>*</span>
                     </label>
-                    <Select
-                      value={model.model}
-                      onChange={(e) => handleModelChange(index, 'model', e.target.value)}
-                      disabled={!model.brand}
-                    >
-                      <option value="">모델 선택</option>
-                      {model.brand && popularModels
-                        .find(b => b.brand === model.brand)?.models
-                        .map(modelName => (
-                          <option key={modelName} value={modelName}>
-                            {modelName}
-                          </option>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        value={model.model}
+                        onChange={(e) => handleModelChange(index, 'model', e.target.value)}
+                        placeholder={model.brand ? `${model.brand} 모델 입력 또는 선택` : "모델 입력"}
+                        list={`model-list-${index}`}
+                        style={{
+                          width: '100%',
+                          padding: model.brand && modelsByBrand[model.brand] ? '0.75rem 4rem 0.75rem 0.75rem' : '0.75rem',
+                          border: '2px solid #e5e7eb',
+                          borderRadius: '0.5rem',
+                          fontSize: '0.875rem',
+                          backgroundColor: 'white',
+                          color: '#374151',
+                          outline: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = 'rgb(30, 64, 175)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#e5e7eb';
+                        }}
+                      />
+                      <datalist id={`model-list-${index}`}>
+                        {/* 현재 브랜드의 기존 모델들 */}
+                        {model.brand && modelsByBrand[model.brand]?.map(modelName => (
+                          <option key={modelName} value={modelName} />
                         ))}
-                    </Select>
+                        {/* 전체 모델 중 유사한 이름들 */}
+                        {model.model && existingModels
+                          .filter(m => m.model.toLowerCase().includes(model.model.toLowerCase()))
+                          .slice(0, 5) // 최대 5개까지만
+                          .map(m => (
+                            <option key={`${m.brand}-${m.model}`} value={m.model} />
+                          ))}
+                      </datalist>
+                      
+                      {/* 기존 모델 개수 표시 */}
+                      {model.brand && modelsByBrand[model.brand] && (
+                        <div style={{
+                          position: 'absolute',
+                          right: '0.75rem',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          fontSize: '0.75rem',
+                          color: '#9ca3af',
+                          pointerEvents: 'none'
+                        }}>
+                          {modelsByBrand[model.brand].length}개 모델
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* 연식 */}

@@ -152,7 +152,7 @@ export function Sidebar({ className }: SidebarProps) {
                 fontWeight: '600', 
                 color: '#f8fafc',
                 margin: 0
-              }}>렌트카 관리자</h1>
+              }}>Ever RentCar</h1>
             </motion.div>
           )}
         </AnimatePresence>
