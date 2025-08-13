@@ -3,7 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+    timeout: 30000, // 실시간 연결 타임아웃을 30초로 설정하여 안정성 향상
+    heartbeatIntervalMs: 30000, // 연결 상태 확인 간격을 30초로 설정
+  },
+})
 
 // Database types
 export type Database = {

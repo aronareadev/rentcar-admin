@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bell, 
@@ -9,47 +9,14 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  MessageSquare,
-  Calendar,
-  Car
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { useConsultationNotifications } from '@/src/hooks/useConsultationNotifications';
+import { consultationService } from '../../../src/lib/consultationService';
+import { useToast } from '@/src/hooks/useToast';
+import Link from 'next/link';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'warning' | 'error' | 'success';
-  time: string;
-  read: boolean;
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    title: '새로운 예약',
-    message: '김철수님이 K5 차량을 예약했습니다.',
-    type: 'info',
-    time: '2분 전',
-    read: false,
-  },
-  {
-    id: '2',
-    title: '차량 점검 필요',
-    message: '차량번호 12가3456 정기점검 기한이 임박했습니다.',
-    type: 'warning',
-    time: '1시간 전',
-    read: false,
-  },
-  {
-    id: '3',
-    title: '상담 완료',
-    message: '문의번호 CS-2024-001 상담이 완료되었습니다.',
-    type: 'success',
-    time: '2시간 전',
-    read: true,
-  },
-];
 
 interface HeaderProps {
   className?: string;
@@ -59,29 +26,40 @@ export function Header({ className }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { showNotification } = useToast();
+  const { 
+    unreadCount: consultationUnreadCount, 
+    latestConsultations, 
+    showNotification: hasNewConsultation
+  } = useConsultationNotifications();
 
-  const unreadCount = mockNotifications.filter(n => !n.read).length;
+  const unreadCount = consultationUnreadCount;
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'info':
-        return <MessageSquare size={16} className="text-blue-500" />;
-      case 'warning':
-        return <Car size={16} className="text-yellow-500" />;
-      case 'success':
-        return <Calendar size={16} className="text-green-500" />;
-      case 'error':
-        return <Bell size={16} className="text-red-500" />;
-      default:
-        return <Bell size={16} className="text-gray-500" />;
+  // 상담 읽음 처리 함수
+  const handleConsultationRead = async (consultationId: string) => {
+    try {
+      await consultationService.markAsRead(consultationId);
+      console.log('상담 읽음 처리 완료:', consultationId);
+    } catch (error) {
+      console.error('상담 읽음 처리 실패:', error);
     }
   };
+
+  // 새로운 상담 알림 토스트 표시
+  useEffect(() => {
+    if (hasNewConsultation) {
+      showNotification(
+        '새로운 상담 접수',
+        '새로운 고객 상담이 등록되었습니다.'
+      );
+    }
+  }, [hasNewConsultation, showNotification]);
 
   return (
     <header 
       className={cn(className)} 
       style={{ 
-        padding: '1.25rem 2rem',
+        padding: '1.25rem 1.75rem',
         backgroundColor: '#ffffff',
         borderBottom: '1px solid #1e293b'
       }}
@@ -90,7 +68,7 @@ export function Header({ className }: HeaderProps) {
         {/* Search */}
         <div className="flex-1 max-w-lg">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="검색..."
@@ -177,41 +155,43 @@ export function Header({ className }: HeaderProps) {
                     <h3 className="text-lg font-semibold text-gray-900">알림</h3>
                   </div>
                   <div className="max-h-96 overflow-y-auto admin-scrollbar">
-                    {mockNotifications.length === 0 ? (
+                    {/* 상담 알림 먼저 표시 */}
+                    {latestConsultations.filter(c => !c.is_read).map((consultation) => (
+                      <Link 
+                        key={consultation.id}
+                        href={`/admin/consultations`}
+                        className="block border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors bg-blue-50"
+                        style={{ padding: '1.25rem' }}
+                        onClick={() => {
+                          setShowNotifications(false);
+                          handleConsultationRead(consultation.id);
+                        }}
+                      >
+                        <div className="flex items-start" style={{ gap: '0.75rem' }}>
+                          <div className="flex-shrink-0 mt-1">
+                            <MessageSquare size={16} className="text-blue-500" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              새로운 상담 접수
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {consultation.customer_name}님의 "{consultation.subject}" 문의
+                            </p>
+                            <p className="text-xs text-gray-500 mt-2">
+                              {new Date(consultation.created_at).toLocaleString('ko-KR')}
+                            </p>
+                          </div>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
+                        </div>
+                      </Link>
+                    ))}
+                    
+                    {/* 알림이 없을 때 메시지 */}
+                    {latestConsultations.filter(c => !c.is_read).length === 0 && (
                       <div style={{ padding: '1.25rem', textAlign: 'center', color: '#6b7280' }}>
                         새로운 알림이 없습니다.
                       </div>
-                    ) : (
-                      mockNotifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={cn(
-                            'border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors',
-                            !notification.read && 'bg-blue-50'
-                          )}
-                          style={{ padding: '1.25rem' }}
-                        >
-                          <div className="flex items-start" style={{ gap: '0.75rem' }}>
-                            <div className="flex-shrink-0 mt-1">
-                              {getNotificationIcon(notification.type)}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900">
-                                {notification.title}
-                              </p>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {notification.message}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-2">
-                                {notification.time}
-                              </p>
-                            </div>
-                            {!notification.read && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>
-                            )}
-                          </div>
-                        </div>
-                      ))
                     )}
                   </div>
                   <div style={{ padding: '1.25rem', borderTop: '1px solid #e5e7eb' }}>
@@ -309,6 +289,8 @@ export function Header({ className }: HeaderProps) {
           }}
         />
       )}
+
+
     </header>
   );
 }

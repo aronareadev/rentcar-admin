@@ -15,7 +15,9 @@ import {
   Menu, 
   X,
   ChevronDown,
-  LogOut
+  LogOut,
+  Bell,
+  Package
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -311,7 +313,7 @@ export function Sidebar({ className }: SidebarProps) {
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
-                      style={{ marginLeft: '2rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.125rem' }}
+                      style={{ marginLeft: '2rem', marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.125rem' }}
                     >
                       {item.children.map((child) => (
                         <Link
