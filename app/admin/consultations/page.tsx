@@ -114,13 +114,6 @@ export default function ConsultationsPage() {
     setEndDate('');
   };
 
-  // 오늘 날짜로 설정
-  const handleSetToday = () => {
-    const today = getTodayDate();
-    setStartDate(today);
-    setEndDate(today);
-  };
-
   // 상담 읽음 처리
   const handleMarkAsRead = async (id: string) => {
     try {
@@ -589,12 +582,13 @@ export default function ConsultationsPage() {
           <div 
             style={{
               backgroundColor: 'white',
-              borderRadius: '0.75rem',
               maxWidth: '600px',
               width: '100%',
-              maxHeight: '80vh',
+              maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column'
             }}
             onClick={(e) => e.stopPropagation()}
           >

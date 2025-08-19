@@ -34,10 +34,15 @@ export function PageLayout({ title, description, children, actions }: PageLayout
           }}>{title}</h1>
           {description && (
             <p style={{ 
-              color: '#64748b',
+              color: '#ffffff',
+              backgroundColor: 'rgb(30, 64, 175)',
               margin: 0,
               fontSize: '1rem',
-              fontFamily: "'WantedSans', system-ui, -apple-system, sans-serif"
+              fontFamily: "'WantedSans', system-ui, -apple-system, sans-serif",
+              padding: '0.25rem 0.25rem',
+              //borderRadius: '0.5rem',
+              display: 'inline-block',
+              marginTop: '0.5rem'
             }}>
               {description}
             </p>
