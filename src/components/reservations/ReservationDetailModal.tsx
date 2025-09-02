@@ -19,7 +19,7 @@ import {
   Download,
   User
 } from 'lucide-react';
-import { Button, Card, Loading } from '@/src/components/ui';
+import { Button, Loading } from '@/src/components/ui';
 import { StatusBadge } from './StatusBadge';
 import { 
   getReservationById, 
@@ -185,30 +185,130 @@ export default function ReservationDetailModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 9999
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden"
+        className="bg-white w-full overflow-hidden flex flex-col"
+                            style={{
+                      borderRadius: '0.75rem',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                      maxWidth: '800px',
+                      maxHeight: '90vh'
+                    }}
       >
         {/* 헤더 */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+        <div 
+          className="flex items-center justify-between text-white"
+          style={{
+            backgroundColor: 'rgb(30, 64, 175)',
+            padding: '1rem 1.5rem',
+            borderTopLeftRadius: '0.75rem',
+            borderTopRightRadius: '0.75rem'
+          }}
+        >
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-blue-600" />
-            </div>
+            <Calendar style={{ width: '1.25rem', height: '1.25rem' }} />
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                {loading ? '예약 상세' : `예약 상세: ${reservation?.reservation_number || ''}`}
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+                예약 상세
               </h2>
-              <p className="text-sm text-gray-500">예약 정보를 확인하고 관리할 수 있습니다</p>
+
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            {/* 액션 버튼들 */}
-            {reservation && !loading && !error && (
-              <>
+            {/* 액션 버튼들 - 헤더에서 제거하고 컨텐츠로 이동 */}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full transition-colors"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+              }}
+            >
+              <X style={{ width: '1.25rem', height: '1.25rem' }} />
+            </button>
+          </div>
+        </div>
+
+        {/* 내용 */}
+                            <div 
+                      style={{
+                        padding: '2rem',
+                        overflowY: 'auto',
+                        flex: 1
+                      }}
+                    >
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loading size="lg" />
+            </div>
+          ) : error || !reservation ? (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">오류가 발생했습니다</h3>
+              <p className="text-gray-600">{error}</p>
+            </div>
+          ) : (
+            <div>
+              {/* 예약번호 */}
+              <div 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: 'rgba(30, 64, 175, 0.05)',
+                  border: '1px solid rgba(30, 64, 175, 0.2)',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1rem',
+                                            marginBottom: '1.5rem'
+                }}
+              >
+                <div className="flex items-center">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <span style={{ fontSize: '0.875rem', color: '#64748b', marginLeft: '0.5rem' }}>예약 상세:</span>
+                  <span style={{ fontSize: '1rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                    {reservation.reservation_number}
+                  </span>
+                </div>
+                <div 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.5rem'
+                  }}
+                >
+                  <StatusBadge status={reservation.status} />
+                  <StatusBadge status={reservation.payment_status} type="payment" />
+                </div>
+              </div>
+
+              {/* 액션 버튼들 */}
+              <div 
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '0.75rem',
+                  paddingTop: '1rem',
+                  marginTop: '1rem',
+                  borderTop: '2px solid rgba(30, 64, 175, 0.1)',
+                                            marginBottom: '1.5rem'
+                }}
+              >
                 <Button variant="outline" size="sm" leftIcon={<Download size={16} />}>
                   다운로드
                 </Button>
@@ -246,47 +346,33 @@ export default function ReservationDetailModal({
                   <Edit size={16} />
                   <span className="ml-1">수정</span>
                 </Button>
-              </>
-            )}
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
-        </div>
-
-        {/* 내용 */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loading size="lg" />
-            </div>
-          ) : error || !reservation ? (
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <AlertCircle className="w-8 h-8 text-red-500" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">오류가 발생했습니다</h3>
-              <p className="text-gray-600">{error}</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* 상태 개요 */}
-              <Card variant="bordered" padding="lg">
-                <div className="flex items-center justify-between mb-4">
+
+              {/* 예약 현황 */}
+              <div 
+                style={{
+                  backgroundColor: 'rgba(30, 64, 175, 0.02)',
+                  border: '1px solid rgba(30, 64, 175, 0.1)',
+                  borderRadius: '0.5rem',
+                  padding: '1rem',
+                                            marginBottom: '1.5rem'
+                }}
+              >
+                <div className="flex items-center mb-3">
+                  <Calendar className="w-4 h-4 text-blue-600 mr-2" />
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                    예약 현황
+                  </h3>
+                </div>
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <h3 className="text-lg font-bold text-gray-900">예약 현황</h3>
-                    <StatusBadge status={reservation.status} />
-                    <StatusBadge status={reservation.payment_status} type="payment" />
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(reservation.total_amount)}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      총 {getDaysCount(reservation.start_date, reservation.end_date)}일
+                    <div>
+                      <div className="text-lg font-bold text-blue-600">
+                        {formatCurrency(reservation.total_amount)}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        총 {getDaysCount(reservation.start_date, reservation.end_date)}일
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -311,151 +397,201 @@ export default function ReservationDetailModal({
                     </div>
                   </div>
                 )}
-              </Card>
+              </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 상세 정보 그리드 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* 고객 정보 */}
-                <Card variant="bordered" padding="lg">
-                  <div className="flex items-center mb-4">
-                    <User className="w-5 h-5 text-gray-400 mr-2" />
-                    <h4 className="text-lg font-semibold text-gray-900">고객 정보</h4>
+                <div 
+                  style={{
+                    backgroundColor: 'rgba(30, 64, 175, 0.02)',
+                    border: '1px solid rgba(30, 64, 175, 0.1)',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem'
+                  }}
+                >
+                  <div className="flex items-center mb-2">
+                    <User className="w-4 h-4 text-blue-600 mr-2" />
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                      고객 정보
+                    </h4>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <span className="w-16 text-sm text-gray-500">이름:</span>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">이름:</span>
                       <span className="font-medium text-gray-900">{reservation.guest_name}</span>
                     </div>
-                    <div className="flex items-center">
-                      <Phone className="w-4 h-4 text-gray-400 mr-2" />
-                      <span className="w-14 text-sm text-gray-500">연락처:</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">연락처:</span>
                       <span className="text-gray-900">{reservation.guest_phone}</span>
                     </div>
-                    <div className="flex items-center">
-                      <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                      <span className="w-14 text-sm text-gray-500">이메일:</span>
-                      <span className="text-gray-900">{reservation.guest_email}</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">이메일:</span>
+                      <span className="text-gray-900 text-xs">{reservation.guest_email}</span>
                     </div>
                   </div>
-                </Card>
+                </div>
 
                 {/* 차량 정보 */}
-                <Card variant="bordered" padding="lg">
-                  <div className="flex items-center mb-4">
-                    <Car className="w-5 h-5 text-gray-400 mr-2" />
-                    <h4 className="text-lg font-semibold text-gray-900">차량 정보</h4>
+                <div 
+                  style={{
+                    backgroundColor: 'rgba(30, 64, 175, 0.02)',
+                    border: '1px solid rgba(30, 64, 175, 0.1)',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem'
+                  }}
+                >
+                  <div className="flex items-center mb-2">
+                    <Car className="w-4 h-4 text-blue-600 mr-2" />
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                      차량 정보
+                    </h4>
                   </div>
-                  
-                  <div className="space-y-3">
+                  <div className="space-y-2 text-sm">
                     <div>
-                      <div className="font-medium text-gray-900 text-lg">
+                      <div className="font-medium text-gray-900">
                         {reservation.vehicles?.vehicle_brands?.name || reservation.vehicles?.brand} {reservation.vehicles?.model}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-gray-500 text-xs">
                         {reservation.vehicles?.year}년 • {reservation.vehicles?.color}
                       </div>
                     </div>
-                    <div className="flex items-center">
-                      <span className="w-16 text-sm text-gray-500">차량번호:</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">차량번호:</span>
                       <span className="font-medium text-gray-900">{reservation.vehicles?.vehicle_number}</span>
                     </div>
-                    <div className="flex items-center">
-                      <span className="w-16 text-sm text-gray-500">일일요금:</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">일일요금:</span>
                       <span className="text-gray-900">{formatCurrency(reservation.vehicles?.daily_rate || 0)}</span>
                     </div>
                   </div>
-                </Card>
+                </div>
 
                 {/* 대여 정보 */}
-                <Card variant="bordered" padding="lg">
-                  <div className="flex items-center mb-4">
-                    <Calendar className="w-5 h-5 text-gray-400 mr-2" />
-                    <h4 className="text-lg font-semibold text-gray-900">대여 정보</h4>
+                <div 
+                  style={{
+                    backgroundColor: 'rgba(30, 64, 175, 0.02)',
+                    border: '1px solid rgba(30, 64, 175, 0.1)',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem'
+                  }}
+                >
+                  <div className="flex items-center mb-2">
+                    <Calendar className="w-4 h-4 text-blue-600 mr-2" />
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                      대여 정보
+                    </h4>
                   </div>
-                  
-                  <div className="space-y-4">
+                  <div className="space-y-2 text-sm">
                     <div>
-                      <div className="text-sm text-gray-500 mb-1">대여 기간</div>
-                      <div className="font-medium text-gray-900">
+                      <div className="text-gray-500 text-xs mb-1">대여 기간</div>
+                      <div className="font-medium text-gray-900 text-xs">
                         {formatDate(reservation.start_date)} ~ {formatDate(reservation.end_date)}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        총 {getDaysCount(reservation.start_date, reservation.end_date)}일
-                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 text-gray-400 mr-2" />
-                      <div>
-                        <div className="text-sm text-gray-500">시간</div>
-                        <div className="text-gray-900">
-                          {formatTime(reservation.start_time)} ~ {formatTime(reservation.end_time)}
-                        </div>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">시간:</span>
+                      <span className="text-gray-900">
+                        {formatTime(reservation.start_time)} ~ {formatTime(reservation.end_time)}
+                      </span>
                     </div>
                   </div>
-                </Card>
+                </div>
 
                 {/* 장소 정보 */}
-                <Card variant="bordered" padding="lg">
-                  <div className="flex items-center mb-4">
-                    <MapPin className="w-5 h-5 text-gray-400 mr-2" />
-                    <h4 className="text-lg font-semibold text-gray-900">픽업/반납 장소</h4>
+                <div 
+                  style={{
+                    backgroundColor: 'rgba(30, 64, 175, 0.02)',
+                    border: '1px solid rgba(30, 64, 175, 0.1)',
+                    borderRadius: '0.5rem',
+                    padding: '0.75rem'
+                  }}
+                >
+                  <div className="flex items-center mb-2">
+                    <MapPin className="w-4 h-4 text-blue-600 mr-2" />
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                      픽업/반납 장소
+                    </h4>
                   </div>
-                  
-                  <div className="space-y-3">
+                  <div className="space-y-2 text-sm">
                     <div>
-                      <div className="text-sm text-gray-500 mb-1">픽업 장소</div>
-                      <div className="font-medium text-gray-900">
+                      <div className="text-gray-500 text-xs">픽업:</div>
+                      <div className="font-medium text-gray-900 text-xs">
                         {reservation.pickup_location?.name || '정보 없음'}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {reservation.pickup_location?.address}
-                      </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500 mb-1">반납 장소</div>
-                      <div className="font-medium text-gray-900">
+                      <div className="text-gray-500 text-xs">반납:</div>
+                      <div className="font-medium text-gray-900 text-xs">
                         {reservation.return_location?.name || '정보 없음'}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {reservation.return_location?.address}
                       </div>
                     </div>
                   </div>
-                </Card>
+                </div>
               </div>
 
               {/* 요청사항 */}
               {reservation.notes && (
-                <Card variant="bordered" padding="lg">
-                  <div className="flex items-center mb-4">
-                    <FileText className="w-5 h-5 text-gray-400 mr-2" />
-                    <h4 className="text-lg font-semibold text-gray-900">고객 요청사항</h4>
+                <div 
+                  style={{
+                    backgroundColor: 'rgba(30, 64, 175, 0.02)',
+                    border: '1px solid rgba(30, 64, 175, 0.1)',
+                    borderRadius: '0.5rem',
+                    padding: '1rem',
+                                              marginBottom: '1.5rem'
+                  }}
+                >
+                  <div className="flex items-center mb-3">
+                    <FileText className="w-4 h-4 text-blue-600 mr-2" />
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                      고객 요청사항
+                    </h4>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4">
                     <p className="text-gray-700 whitespace-pre-wrap">{reservation.notes}</p>
                   </div>
-                </Card>
+                </div>
               )}
 
               {/* 반납 정보 (반납 완료된 경우) */}
               {reservation.status === 'completed' && reservation.admin_notes && reservation.admin_notes.includes('=== 반납 처리 정보 ===') && (
-                <Card variant="bordered" padding="lg">
-                  <div className="flex items-center mb-4">
-                    <RotateCcw className="w-5 h-5 text-gray-400 mr-2" />
-                    <h4 className="text-lg font-semibold text-gray-900">반납 정보</h4>
+                <div 
+                  style={{
+                    backgroundColor: 'rgba(30, 64, 175, 0.02)',
+                    border: '1px solid rgba(30, 64, 175, 0.1)',
+                    borderRadius: '0.5rem',
+                    padding: '1rem',
+                                              marginBottom: '1.5rem'
+                  }}
+                >
+                  <div className="flex items-center mb-3">
+                    <RotateCcw className="w-4 h-4 text-blue-600 mr-2" />
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                      반납 정보
+                    </h4>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4">
                     <p className="text-gray-700 whitespace-pre-wrap">{reservation.admin_notes}</p>
                   </div>
-                </Card>
+                </div>
               )}
 
               {/* 예약 히스토리 */}
-              <Card variant="bordered" padding="lg">
-                <div className="flex items-center mb-4">
-                  <Clock className="w-5 h-5 text-gray-400 mr-2" />
-                  <h4 className="text-lg font-semibold text-gray-900">예약 히스토리</h4>
+              <div 
+                style={{
+                  backgroundColor: 'rgba(30, 64, 175, 0.02)',
+                  border: '1px solid rgba(30, 64, 175, 0.1)',
+                  borderRadius: '0.5rem',
+                  padding: '1rem',
+                  marginTop: '1.5rem',
+                                            marginBottom: '1.5rem'
+                }}
+              >
+                <div className="flex items-center mb-3">
+                  <Clock className="w-4 h-4 text-blue-600 mr-2" />
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'rgb(30, 64, 175)', marginLeft: '0.5rem' }}>
+                    예약 히스토리
+                  </h4>
                 </div>
                 
                 <div className="space-y-3">
@@ -499,7 +635,7 @@ export default function ReservationDetailModal({
                     </div>
                   )}
                 </div>
-              </Card>
+              </div>
             </div>
           )}
         </div>

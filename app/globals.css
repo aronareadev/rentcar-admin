@@ -149,6 +149,24 @@ b {
   }
 }
 
+/* Chroma text animation keyframes */
+@keyframes chromaSweep {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+/* Fallback for browsers that don't support background-clip */
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .chroma-text-ocean {
+    color: #00c2ff !important;
+    -webkit-text-fill-color: initial !important;
+  }
+}
+
 /* Status indicators */
 .status-available {
   background-color: #dcfce7;

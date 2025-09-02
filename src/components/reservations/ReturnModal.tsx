@@ -78,31 +78,68 @@ export default function ReturnModal({ isOpen, onClose, onConfirm, reservation }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 9999
+      }}
+    >
+      <div 
+        className="bg-white w-full overflow-hidden flex flex-col"
+        style={{
+          borderRadius: '0.75rem',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          maxWidth: '600px',
+          maxHeight: '85vh'
+        }}
+      >
         {/* 헤더 */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div 
+          className="flex items-center justify-between text-white"
+          style={{
+            backgroundColor: 'rgb(30, 64, 175)',
+            padding: '1rem 1.5rem',
+            borderTopLeftRadius: '0.75rem',
+            borderTopRightRadius: '0.75rem'
+          }}
+        >
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-              <Car className="w-5 h-5 text-green-600" />
-            </div>
+            <Car style={{ width: '1.25rem', height: '1.25rem' }} />
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">차량 반납 처리</h2>
-              <p className="text-sm text-gray-500">
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>차량 반납 처리</h2>
+              <p className="text-sm opacity-80">
                 예약번호: {reservation.reservation_number}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 rounded-full transition-colors"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.2)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+            }}
           >
-            <X className="w-5 h-5 text-gray-400" />
+            <X style={{ width: '1.25rem', height: '1.25rem' }} />
           </button>
         </div>
 
         {/* 예약 정보 요약 */}
-        <div className="p-6 bg-gray-50 border-b border-gray-200">
+        <div 
+          style={{
+            backgroundColor: 'rgba(30, 64, 175, 0.02)',
+            border: '1px solid rgba(30, 64, 175, 0.1)',
+            padding: '1rem',
+            margin: '1rem',
+            borderRadius: '0.5rem'
+          }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-500">고객명:</span>
@@ -128,7 +165,15 @@ export default function ReturnModal({ isOpen, onClose, onConfirm, reservation }:
         </div>
 
         {/* 폼 */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form 
+          onSubmit={handleSubmit} 
+          style={{
+            padding: '1.5rem',
+            overflowY: 'auto',
+            flex: 1
+          }}
+          className="space-y-6"
+        >
           {/* 실제 반납 시간 */}
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
@@ -233,7 +278,16 @@ export default function ReturnModal({ isOpen, onClose, onConfirm, reservation }:
           )}
 
           {/* 버튼 */}
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+          <div 
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '0.75rem',
+              paddingTop: '1rem',
+              marginTop: '1rem',
+              borderTop: '2px solid rgba(30, 64, 175, 0.1)'
+            }}
+          >
             <Button
               type="button"
               variant="outline"

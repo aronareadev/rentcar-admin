@@ -129,8 +129,8 @@ export function Sidebar({ className }: SidebarProps) {
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       className={`flex flex-col h-screen sticky top-0 ${className || ''}`}
       style={{ 
-        backgroundColor: '#1e293b',
-        borderRight: '1px solid #334155'
+        background: 'linear-gradient(180deg, #0f1629 0%, #1a1f3a 50%, #0e1624 100%)',
+        borderRight: '1px solid #1e3a5f'
       }}
     >
       {/* Header */}
@@ -139,7 +139,7 @@ export function Sidebar({ className }: SidebarProps) {
         alignItems: 'center', 
         justifyContent: 'space-between', 
         padding: '1.25rem',
-        borderBottom: '1px solid #334155'
+        borderBottom: '1px solid #1e3a5f'
       }}>
         <AnimatePresence>
           {!isCollapsed && (
@@ -149,12 +149,22 @@ export function Sidebar({ className }: SidebarProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <h1 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: '600', 
-                color: '#f8fafc',
-                margin: 0
-              }}>Ever RentCar</h1>
+              <h1 
+                className="chroma-text-ocean"
+                style={{ 
+                  fontSize: '1.25rem', 
+                  fontWeight: '600', 
+                  margin: 0,
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  color: 'transparent',
+                  backgroundImage: 'linear-gradient(90deg, #00c2ff, #1a7fff 35%, #0040ff 60%, #001c7a)',
+                  backgroundSize: '200% 100%',
+                  backgroundPosition: '0% 50%',
+                  animation: 'chromaSweep 3s linear infinite reverse'
+                }}
+              >Ever RentCar</h1>
             </motion.div>
           )}
         </AnimatePresence>
@@ -170,7 +180,7 @@ export function Sidebar({ className }: SidebarProps) {
             cursor: 'pointer'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#334155';
+            e.currentTarget.style.backgroundColor = '#1e3a5f';
             e.currentTarget.style.color = '#f8fafc';
           }}
           onMouseLeave={(e) => {
@@ -202,7 +212,7 @@ export function Sidebar({ className }: SidebarProps) {
                 }}
                 onMouseEnter={(e) => {
                   if (!isItemActive(item)) {
-                    e.currentTarget.style.backgroundColor = '#334155';
+                    e.currentTarget.style.backgroundColor = '#1e3a5f';
                     e.currentTarget.style.color = '#f1f5f9';
                   }
                 }}
@@ -253,7 +263,7 @@ export function Sidebar({ className }: SidebarProps) {
                   }}
                   onMouseEnter={(e) => {
                     if (!isItemActive(item)) {
-                      e.currentTarget.style.backgroundColor = '#334155';
+                      e.currentTarget.style.backgroundColor = '#1e3a5f';
                       e.currentTarget.style.color = '#f1f5f9';
                     }
                   }}
@@ -331,7 +341,7 @@ export function Sidebar({ className }: SidebarProps) {
                           }}
                           onMouseEnter={(e) => {
                             if (!isChildActive(child.href)) {
-                              e.currentTarget.style.backgroundColor = '#475569';
+                              e.currentTarget.style.backgroundColor = '#2a4a6b';
                               e.currentTarget.style.color = '#f1f5f9';
                             }
                           }}
@@ -356,7 +366,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Footer */}
       <div style={{ 
-        borderTop: '1px solid #334155', 
+        borderTop: '1px solid #1e3a5f', 
         padding: '1.25rem' 
       }}>
         <button 
@@ -373,7 +383,7 @@ export function Sidebar({ className }: SidebarProps) {
             backgroundColor: 'transparent'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#334155';
+            e.currentTarget.style.backgroundColor = '#1e3a5f';
             e.currentTarget.style.color = '#f1f5f9';
           }}
           onMouseLeave={(e) => {

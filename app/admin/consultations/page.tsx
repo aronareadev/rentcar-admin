@@ -114,6 +114,13 @@ export default function ConsultationsPage() {
     setEndDate('');
   };
 
+  // 오늘 날짜로 설정
+  const handleSetToday = () => {
+    const today = getTodayDate();
+    setStartDate(today);
+    setEndDate(today);
+  };
+
   // 상담 읽음 처리
   const handleMarkAsRead = async (id: string) => {
     try {
